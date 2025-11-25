@@ -1,7 +1,55 @@
 <!doctype html>
 <html>
 <head>
-  <meta charset="utf-8" />
+  <style>
+body {
+    background: url("https://images.unsplash.com/photo-1496307042754-b4aa456c4a2d")
+        no-repeat center center fixed;
+    background-size: cover;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+    font-family: "Poppins", sans-serif;
+}
+
+.form-glass {
+    width: 100%;
+    max-width: 420px;
+    padding: 25px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    color: #fff;
+}
+
+input, textarea {
+    width: 100%;
+    padding: 12px;
+    margin-top: 6px;
+    border-radius: 12px;
+    border: none;
+    outline: none;
+    background: rgba(255, 255, 255, 0.25);
+    color: #fff;
+}
+
+button {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    margin-top: 18px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.35);
+    font-weight: bold;
+    cursor: pointer;
+}
+</style>
+
+       <meta charset="utf-8" />
   <title>Waste-Classification Form</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
@@ -17,6 +65,7 @@
 
 <h2>FORM</h2>
 
+<div class="form-glass">
 <form id="myForm">
   <label>Name <input name="name" required /></label>
   <label>Email <input type="email" name="email" required /></label>
@@ -47,6 +96,8 @@
 
   <div id="status" class="small" style="margin-top:8px"></div>
 </form>
+</div>
+
 
 <script>
 const scriptURL = "https://script.google.com/macros/s/AKfycbyQmwY7MCzqLEVa6BFMPdnlFnfMSLFg2WwffwNg9_MMks346TwIsZA_i4haNUuiYjqodg/exec"; 
@@ -201,6 +252,7 @@ document.getElementById('myForm').addEventListener('submit', async (e) => {
 </div>
 </body>
 </html>
+
 
 
 
