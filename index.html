@@ -1,72 +1,46 @@
 <!doctype html>
 <html>
 <head>
-  <style>
-body {
-    background: url("https://images.unsplash.com/photo-1496307042754-b4aa456c4a2d")
-        no-repeat center center fixed;
-    background-size: cover;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
+<style>
+  body{
+    font-family: system-ui, Arial;
+    max-width: 720px;
+    margin: 0 auto;
     padding: 20px;
-    font-family: "Poppins", sans-serif;
-}
 
-.form-glass {
-    width: 100%;
-    max-width: 420px;
-    padding: 25px;
-    border-radius: 20px;
-    background: rgba(255, 255, 255, 0.12);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    box-shadow: 0 8px 32px rgba(0,0,0,0.25);
-    color: #fff;
-}
+    /* 🔥 Background image */
+    background: url("https://images.unsplash.com/photo-1503264116251-35a269479413")
+      no-repeat center center fixed;
+    background-size: cover;
+  }
 
-input, textarea {
-    width: 100%;
-    padding: 12px;
-    margin-top: 6px;
+  /* White card to keep form readable */
+  .form-container {
+    background: rgba(255, 255, 255, 0.92);
+    padding: 20px;
     border-radius: 12px;
-    border: none;
-    outline: none;
-    background: rgba(255, 255, 255, 0.25);
-    color: #fff;
-}
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+  }
 
-button {
-    width: 100%;
-    padding: 12px;
-    border: none;
-    margin-top: 18px;
-    border-radius: 12px;
-    background: rgba(255, 255, 255, 0.35);
-    font-weight: bold;
-    cursor: pointer;
-}
+  label{display:block;margin-top:12px;font-weight:600}
+  input, textarea{
+    width:100%;padding:10px;margin-top:6px;box-sizing:border-box;
+    border-radius: 8px; border:1px solid #ccc;
+  }
+  button{
+    margin-top:14px;padding:12px;border:none;border-radius:8px;
+    background:#4CAF50;color:white;font-size:16px;cursor:pointer;
+  }
 </style>
 
-       <meta charset="utf-8" />
-  <title>Waste-Classification Form</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <style>
-    body{font-family:system-ui,Arial;max-width:720px;margin:18px auto;padding:12px}
-    label{display:block;margin-top:8px}
-    input,textarea{width:100%;padding:8px;margin-top:6px;box-sizing:border-box}
-    #mapPreview{height:200px;width:100%;border:1px solid #ddd;margin-top:8px;display:none}
-    .small{font-size:0.9rem;color:#555}
-    button{margin-top:12px;padding:10px 14px}
-  </style>
 </head>
 <body>
 
+<div class="form-container">
 <h2>FORM</h2>
 
-<div class="form-glass">
 <form id="myForm">
+
   <label>Name <input name="name" required /></label>
   <label>Email <input type="email" name="email" required /></label>
   <label>Phone <input name="phone" /></label>
@@ -252,6 +226,7 @@ document.getElementById('myForm').addEventListener('submit', async (e) => {
 </div>
 </body>
 </html>
+
 
 
 
