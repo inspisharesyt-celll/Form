@@ -1,0 +1,203 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Auto-location Google Sheet Form</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    body{font-family:system-ui,Arial;max-width:720px;margin:18px auto;padding:12px}
+    label{display:block;margin-top:8px}
+    input,textarea{width:100%;padding:8px;margin-top:6px;box-sizing:border-box}
+    #mapPreview{height:200px;width:100%;border:1px solid #ddd;margin-top:8px;display:none}
+    .small{font-size:0.9rem;color:#555}
+    button{margin-top:12px;padding:10px 14px}
+  </style>
+</head>
+<body>
+
+<h2>Submit (auto-location)</h2>
+
+<form id="myForm">
+  <label>Name <input name="name" required /></label>
+  <label>Email <input type="email" name="email" required /></label>
+  <label>Phone <input name="phone" /></label>
+
+  <label>Location (auto)</label>
+  <div class="small">Detected Address:</div>
+  <input name="address" id="address" placeholder="Address will appear here" readonly />
+
+  <!-- hidden fields for lat/lng -->
+  <input type="hidden" name="latitude" id="latitude" />
+  <input type="hidden" name="longitude" id="longitude" />
+
+  <div id="mapPreview"></div>
+
+  <label>Description
+    <textarea name="description" rows="4" placeholder="Write something..."></textarea>
+  </label>
+
+  <label>Upload Image (max ~5MB)
+    <input type="file" id="image" accept="image/*" required />
+  </label>
+
+  <div style="margin-top:10px">
+    <button id="detectBtn" type="button">Detect My Location</button>
+    <button type="submit">Submit</button>
+  </div>
+
+  <div id="status" class="small" style="margin-top:8px"></div>
+</form>
+
+<script>
+const scriptURL = "https://script.google.com/macros/s/AKfycby8ScqfWtjDTElal_eW74Dyer1-347PnUkOceKJaiB0et7Gh-EMbUBzBg9HWGyoWmrZ/exec"; 
+const detectBtn = document.getElementById('detectBtn');
+const status = document.getElementById('status');
+const addressInput = document.getElementById('address');
+const latInput = document.getElementById('latitude');
+const lngInput = document.getElementById('longitude');
+const mapPreview = document.getElementById('mapPreview');
+
+function setStatus(s){ status.textContent = s; }
+
+// --- Reverse geocode using Nominatim (OpenStreetMap) ---
+async function reverseGeocode(lat, lon){
+  // Nominatim free endpoint — fine for light use & testing.
+  const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`;
+  try {
+    const res = await fetch(url, {headers: {'Accept':'application/json'}});
+    if(!res.ok) throw new Error('Reverse-geocode failed: ' + res.status);
+    const data = await res.json();
+    return data.display_name || "";
+  } catch(err){
+    console.warn(err);
+    return "";
+  }
+}
+
+// --- Show small static map preview using OpenStreetMap tile + marker ---
+function showMap(lat, lon){
+  mapPreview.style.display = 'block';
+  // remove old iframe if present
+  mapPreview.innerHTML = `<iframe
+    width="100%" height="200" frameborder="0" style="border:0"
+    src="https://www.openstreetmap.org/export/embed.html?marker=${lat},${lon}&layers=ND"
+    allowfullscreen>
+  </iframe>
+  <div style="font-size:11px;margin-top:6px">Map from OpenStreetMap</div>`;
+}
+
+// --- Get current position (with permission prompts) ---
+function detectLocation(){
+  if(!navigator.geolocation){
+    setStatus('Geolocation not supported by your browser');
+    return;
+  }
+  setStatus('Requesting location permission...');
+  navigator.geolocation.getCurrentPosition(async (pos) => {
+    const lat = pos.coords.latitude;
+    const lon = pos.coords.longitude;
+    latInput.value = lat;
+    lngInput.value = lon;
+    setStatus('Got coordinates: ' + lat.toFixed(5) + ', ' + lon.toFixed(5));
+    showMap(lat, lon);
+
+    setStatus('Reverse-geocoding address...');
+    const addr = await reverseGeocode(lat, lon);
+    if(addr){
+      addressInput.value = addr;
+      setStatus('Address detected: ' + addr);
+    } else {
+      setStatus('Address not found (you can edit it manually).');
+    }
+  }, (err) => {
+    console.error(err);
+    if(err.code === 1) setStatus('Permission denied. Allow location to auto-detect.');
+    else if(err.code === 2) setStatus('Position unavailable.');
+    else if(err.code === 3) setStatus('Timeout while getting location.');
+    else setStatus('Error getting location: ' + err.message);
+  }, {
+    enableHighAccuracy: true,
+    timeout: 15000,
+    maximumAge: 0
+  });
+}
+
+detectBtn.addEventListener('click', detectLocation);
+
+// --- Submit form: convert image to Base64 and post to Apps Script ---
+document.getElementById('myForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  setStatus('Preparing submission...');
+
+  // validations
+  const fileEl = document.getElementById('image');
+  if(!fileEl.files || fileEl.files.length === 0){
+    alert('Please choose an image.');
+    return;
+  }
+  const file = fileEl.files[0];
+  const maxBytes = 5 * 1024 * 1024; // 5MB limit
+  if(file.size > maxBytes){
+    alert('Image too large. Please choose <= 5MB.');
+    return;
+  }
+
+  // Read image as base64
+  const base64 = await new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result.split(',')[1]); // strip data: prefix
+    r.onerror = rej;
+    r.readAsDataURL(file);
+  });
+
+  // gather fields
+  const formEl = e.target;
+  const payload = {
+    name: formEl.name.value || '',
+    email: formEl.email.value || '',
+    phone: formEl.phone.value || '',
+    address: formEl.address.value || '',
+    latitude: formEl.latitude.value || '',
+    longitude: formEl.longitude.value || '',
+    description: formEl.description.value || '',
+    image: base64,
+    filename: file.name
+  };
+
+  setStatus('Uploading to Google Apps Script...');
+  try {
+    const res = await fetch(scriptURL, {
+      method: 'POST',
+      body: new URLSearchParams(payload)
+    });
+    const text = await res.text();
+    setStatus('Server response: ' + text);
+    alert('Submitted successfully!');
+    formEl.reset();
+    mapPreview.style.display = 'none';
+  } catch(err){
+    console.error(err);
+    setStatus('Upload failed: ' + err.message);
+    alert('Upload failed: ' + err.message);
+  }
+});
+</script>
+<div>
+<button 
+  style="
+    background:#4CAF50;
+    color:white;
+    padding:12px 20px;
+    border:none;
+    border-radius:8px;
+    font-size:16px;
+    cursor:pointer;
+    width:100%;
+  "
+  onclick="window.open('https://v0-waste-classification-app-ten.vercel.app/', '_blank');"
+>
+  Open Waste Classification App
+</button>
+</div>
+</body>
+</html>
