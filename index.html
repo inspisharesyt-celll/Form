@@ -3,6 +3,12 @@
 <head>
 <style>
 body {
+  @media (max-width: 600px) {
+    .form-container {
+      height: 100vh;
+      max-height: 100vh;
+    }
+  }
   font-family: system-ui, Arial;
   max-width: 100%;
   margin: 0 auto;
@@ -251,6 +257,7 @@ document.getElementById('myForm').addEventListener('submit', async (e) => {
 </div>
 </body>
 </html>
+
 
 
 
